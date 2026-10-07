@@ -1,24 +1,71 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Notes Demo" },
+      { name: "description", content: "Simple notes app backed by a database." },
+      { property: "og:title", content: "Notes Demo" },
+      { property: "og:description", content: "Simple notes app backed by a database." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
+type Note = { id: string; title: string; created_at: string };
+
 function Index() {
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [title, setTitle] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const load = async () => {
+    const { data, error } = await supabase
+      .from("notes")
+      .select("id, title, created_at")
+      .order("created_at", { ascending: false });
+    if (error) setError(error.message);
+    else setNotes(data ?? []);
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const add = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    const { error } = await supabase.from("notes").insert({ title: title.trim() });
+    if (error) return setError(error.message);
+    setTitle("");
+    load();
+  };
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="mx-auto max-w-md p-8">
+      <h1 className="mb-6 text-3xl font-bold text-foreground">Notes</h1>
+      <form onSubmit={add} className="mb-6 flex gap-2">
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="New note"
+          maxLength={200}
+          className="flex-1 rounded-md border border-input bg-background px-3 py-2"
+        />
+        <button className="rounded-md bg-primary px-4 py-2 text-primary-foreground">Add</button>
+      </form>
+      {error && <p className="mb-4 text-destructive">{error}</p>}
+      <ul className="space-y-2">
+        {notes.map((n) => (
+          <li key={n.id} className="rounded-md border border-border p-3 text-foreground">
+            {n.title}
+          </li>
+        ))}
+      </ul>
+    </main>
   );
 }
