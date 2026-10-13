@@ -1,0 +1,62 @@
+{
+  "$schema": "https://openship.io/openship.schema.json",
+  "services": [
+    {
+      "name": "cake-application",
+      "build": ".",
+      "ports": [
+        "8089"
+      ],
+      "restart": "unless-stopped"
+    },
+    {
+      "name": "cake-authentication",
+      "image": "quay.io/oauth2-proxy/oauth2-proxy:v7.15.1",
+      "ports": [
+        "4180"
+      ],
+      "dependsOn": [
+        "cake-application"
+      ],
+      "exposed": true,
+      "exposedPort": "4180",
+      "domain": "cake.dnstest.infinian.team",
+      "restart": "unless-stopped",
+      "env": {
+        "OAUTH2_PROXY_PROVIDER": "oidc",
+        "OAUTH2_PROXY_PROVIDER_DISPLAY_NAME": "Microsoft Entra B2C",
+        "OAUTH2_PROXY_HTTP_ADDRESS": "0.0.0.0:4180",
+        "OAUTH2_PROXY_UPSTREAMS": "http://cake-application:8089",
+        "OAUTH2_PROXY_CLIENT_ID": "00fcff57-db92-4f5d-a0ea-b705993d7fab",
+        "OAUTH2_PROXY_CLIENT_SECRET": {
+          "value": "ADD_NEW_CLIENT_SECRET_IN_OPENSHIP",
+          "secret": true
+        },
+        "OAUTH2_PROXY_COOKIE_SECRET": {
+          "value": "ADD_NEW_COOKIE_SECRET_IN_OPENSHIP",
+          "secret": true
+        },
+        "OAUTH2_PROXY_REDIRECT_URL": "https://cake.dnstest.infinian.team/oauth2/callback",
+        "OAUTH2_PROXY_OIDC_ISSUER_URL": "https://infialphab2c.b2clogin.com/823ca759-9d69-4b36-b999-d1ac2b60018a/v2.0/",
+        "OAUTH2_PROXY_SKIP_OIDC_DISCOVERY": "true",
+        "OAUTH2_PROXY_LOGIN_URL": "https://infialphab2c.b2clogin.com/infialphab2c.onmicrosoft.com/oauth2/v2.0/authorize?p=b2c_1a_signup_signin_passwordless_only_qz",
+        "OAUTH2_PROXY_REDEEM_URL": "https://infialphab2c.b2clogin.com/infialphab2c.onmicrosoft.com/oauth2/v2.0/token?p=b2c_1a_signup_signin_passwordless_only_qz",
+        "OAUTH2_PROXY_OIDC_JWKS_URL": "https://infialphab2c.b2clogin.com/infialphab2c.onmicrosoft.com/discovery/v2.0/keys?p=b2c_1a_signup_signin_passwordless_only_qz",
+        "OAUTH2_PROXY_SCOPE": "openid profile api://00fcff57-db92-4f5d-a0ea-b705993d7fab/user_impersonation",
+        "OAUTH2_PROXY_EMAIL_DOMAINS": "infinitiresearch.com",
+        "OAUTH2_PROXY_USER_ID_CLAIM": "sub",
+        "OAUTH2_PROXY_EMAIL_CLAIM": "email",
+        "OAUTH2_PROXY_REVERSE_PROXY": "true",
+        "OAUTH2_PROXY_COOKIE_SECURE": "true",
+        "OAUTH2_PROXY_COOKIE_HTTPONLY": "true",
+        "OAUTH2_PROXY_COOKIE_SAMESITE": "lax",
+        "OAUTH2_PROXY_COOKIE_EXPIRE": "8h",
+        "OAUTH2_PROXY_COOKIE_REFRESH": "30m",
+        "OAUTH2_PROXY_SKIP_PROVIDER_BUTTON": "true",
+        "OAUTH2_PROXY_SET_XAUTHREQUEST": "true",
+        "OAUTH2_PROXY_PASS_ACCESS_TOKEN": "true",
+        "OAUTH2_PROXY_PASS_USER_HEADERS": "true"
+      }
+    }
+  ]
+}
